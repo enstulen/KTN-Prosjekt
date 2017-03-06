@@ -30,7 +30,7 @@ class ClientHandler(socketserver.BaseRequestHandler):
 			'login': self.handle_login,
 			'logout': self.handle_logout,
 			'help': self.handle_help,
-			'message': self.handle_message,
+			'msg': self.handle_message,
 			'names': self.handle_names,
 		}
 
@@ -48,7 +48,7 @@ class ClientHandler(socketserver.BaseRequestHandler):
 			print(request)
 
 			if request in self.possible_requests:
-				if request == 'login' or request == 'message':
+				if request == 'login' or request == 'msg':
 					self.possible_requests[request](content)
 				elif request == 'logout' or request == 'help' or request == 'names':
 					self.possible_requests[request]()
@@ -62,7 +62,6 @@ class ClientHandler(socketserver.BaseRequestHandler):
 			logged_in_usernames.append(username)
 			clients.update({self.username: self.connection})
 			self.create_and_send_response("server", "info", "%s Logged in" % (username))
-
 
 	def handle_logout(self):
 		print("handle logout")
