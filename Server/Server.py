@@ -39,6 +39,7 @@ class ClientHandler(socketserver.BaseRequestHandler):
 		self.ip = self.client_address[0]
 		self.port = self.client_address[1]
 		self.connection = self.request
+		self.logged_in = False
 
 		# Loop that listens for messages from the client
 		while True:
@@ -69,12 +70,14 @@ class ClientHandler(socketserver.BaseRequestHandler):
 			clients.update({self.username: self.connection})
 			self.create_and_send_response("server", "info", "%s Logged in" % (username))
 			self.create_and_send_response("server", "history", chat_history)
+			self.logged_in = True
 
 	def handle_logout(self):
 		if self.username in logged_in_usernames:
 			clients.pop(self.username)
 			logged_in_usernames.remove(self.username)
 			self.create_and_send_response("server", "info", "%s Logged out" % (self.username))
+			self.logged_in = False
 		else:
 			self.create_and_send_response("server", "error", "User is not logged in")
 
@@ -82,12 +85,18 @@ class ClientHandler(socketserver.BaseRequestHandler):
 		self.create_and_send_response("server", "info", help_text)
 
 	def handle_message(self, message):
-		chat_history.append({"username": self.username, "message": message, "timestamp": self.create_timestamp()})
-		response = self.create_response(self.username, "message", message)
-		self.send_response_all(response)
+		if self.logged_in == True:
+			chat_history.append({"username": self.username, "message": message, "timestamp": self.create_timestamp()})
+			response = self.create_response(self.username, "message", message)
+			self.send_response_all(response)
+		else:
+			self.create_and_send_response("server", "error", "User is not logged in")
 
 	def handle_names(self):
-		self.create_and_send_response("server", "info", logged_in_usernames)
+		if self.logged_in == True:
+			self.create_and_send_response("server", "info", logged_in_usernames)
+		else:
+			self.create_and_send_response("server", "error", "User is not logged in")
 
 	def create_timestamp(self):
 		time_stamp = time.time()
