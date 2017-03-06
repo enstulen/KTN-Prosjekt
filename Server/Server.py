@@ -63,6 +63,8 @@ class ClientHandler(socketserver.BaseRequestHandler):
 			self.create_and_send_response("server", "error", "Username already taken.")
 		elif not(username == match.group(0)):
 			self.create_and_send_response("server", "error", "Illegal username.")
+		elif self.connection in clients.values():
+			self.create_and_send_response("server", "error", "you are already logged on.")
 		else:
 			self.username = username
 			logged_in_usernames.append(username)
