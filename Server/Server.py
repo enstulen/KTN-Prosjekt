@@ -8,6 +8,7 @@ import re
 help_text = "Available commands are: login <username>, logout, help, message <user>, names"
 clients = {}
 logged_in_usernames = []
+chat_history = {}
 
 """
 Variables and functions that must be used by all the ClientHandler objects
@@ -67,6 +68,7 @@ class ClientHandler(socketserver.BaseRequestHandler):
 			logged_in_usernames.append(username)
 			clients.update({self.username: self.connection})
 			self.create_and_send_response("server", "info", "%s Logged in" % (username))
+			self.create_and_send_response("server", "history", chat_history)
 
 	def handle_logout(self):
 		if self.username in logged_in_usernames:
@@ -80,6 +82,7 @@ class ClientHandler(socketserver.BaseRequestHandler):
 		self.create_and_send_response("server", "info", help_text)
 
 	def handle_message(self, message):
+		chat_history.update({"username": self.username, "message": message, "timestamp": self.create_timestamp()})
 		response = self.create_response(self.username, "message", message)
 		self.send_response_all(response)
 
