@@ -4,6 +4,10 @@ import json
 import time
 import datetime
 
+help_text = "Available commands are: login <username>, logout, help, message <user>, names"
+clients = {}
+logged_in_usernames = []
+
 """
 Variables and functions that must be used by all the ClientHandler objects
 must be written here (e.g. a dictionary for connected clients)
@@ -16,9 +20,7 @@ class ClientHandler(socketserver.BaseRequestHandler):
 	only connected clients, and not the server itself. If you want to write
 	logic for the server, you must write it outside this class
 	"""
-	help_text = "Available commands are: login <username>, logout, help, message <user>, names"
-	clients = {}
-	logged_in_usernames = []
+
 
 	def handle(self):
 		"""
@@ -49,27 +51,28 @@ class ClientHandler(socketserver.BaseRequestHandler):
 				if request == 'login' or request == 'message':
 					self.possible_requests[request](content)
 				elif request == 'logout' or request == 'help' or request == 'names':
-					self.possible_requests[request](self)
+					self.possible_requests[request]()
 
 
 	def handle_login(self, username):
-		if username in self.logged_in_usernames:
+		if username in logged_in_usernames:
 			self.create_and_send_response("server", "error", "Username already taken.")
 		else:
-			self.logged_in_usernames.append(username)
-			self.clients.update({username: self.connection})
-			self.create_and_send_response("server", "info", "%s Logged in" % (username))
 			self.username = username
+			logged_in_usernames.append(username)
+			clients.update({self.username: self.connection})
+			self.create_and_send_response("server", "info", "%s Logged in" % (username))
 
 
 	def handle_logout(self):
 		print("handle logout")
 
 	def handle_help(self):
-		self.create_and_send_response("server", "info", self.help_text)
+		self.create_and_send_response("server", "info", help_text)
 
 	def handle_message(self, message):
-		print("handle message")
+		response = self.create_response(self.username, "message", message)
+		self.send_response_all(response)
 
 	def handle_names(self):
 		print("handle names")
@@ -93,6 +96,12 @@ class ClientHandler(socketserver.BaseRequestHandler):
 	def send_response(self, response):
 		json_object = json.dumps(response)
 		self.connection.send(json_object.encode())
+
+	def send_response_all(self, response):
+		json_object = json.dumps(response)
+		for connection in clients.values():
+			print("halla")
+			connection.send(json_object.encode())
 
 	def create_and_send_response(self, sender, response_type, content):
 		response = self.create_response(sender, response_type, content)
