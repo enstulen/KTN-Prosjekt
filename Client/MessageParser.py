@@ -28,10 +28,8 @@ class MessageParser():
 		return "[%s] %s: %s" % (payload['timestamp'],payload['sender'], payload['content'])
 
 	def parse_history(self, payload):
-		print(payload)
-		print(payload["content"])
 		return_string = ""
-		for jalla in payload["content"]:
-			#return_string += "[%s] %s: %s \n" % (message["timestamp"], message["username"], message["message"])
+		for message in payload["content"]:
+			return_string += "[%s] %s: %s \n" % (message["timestamp"], message["username"], message["message"])
 		return return_string
 
