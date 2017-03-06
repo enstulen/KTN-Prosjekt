@@ -69,7 +69,12 @@ class ClientHandler(socketserver.BaseRequestHandler):
 			self.create_and_send_response("server", "info", "%s Logged in" % (username))
 
 	def handle_logout(self):
-		print("handle logout")
+		if self.username in logged_in_usernames:
+			clients.pop(self.username)
+			logged_in_usernames.remove(self.username)
+			self.create_and_send_response("server", "info", "%s Logged out" % (self.username))
+		else:
+			self.create_and_send_response("server", "error", "User is not logged in")
 
 	def handle_help(self):
 		self.create_and_send_response("server", "info", help_text)
@@ -104,7 +109,6 @@ class ClientHandler(socketserver.BaseRequestHandler):
 	def send_response_all(self, response):
 		json_object = json.dumps(response)
 		for connection in clients.values():
-			print("halla")
 			connection.send(json_object.encode())
 
 	def create_and_send_response(self, sender, response_type, content):
