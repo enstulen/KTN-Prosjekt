@@ -17,6 +17,7 @@ class ClientHandler(socketserver.BaseRequestHandler):
 	logic for the server, you must write it outside this class
 	"""
 	help_text = "Available commands are: login <username>, logout, help, message <user>, names"
+	logged_in_usernames = []
 
 	def handle(self):
 		"""
@@ -44,10 +45,13 @@ class ClientHandler(socketserver.BaseRequestHandler):
 			print(request)
 
 			if request in self.possible_requests:
-				self.possible_requests[request]()
+				if request == 'login' or request == 'message':
+					self.possible_requests[request](self, content)
+				elif request == 'logout' or request == 'help' or request == 'names':
+					self.possible_requests[request](self)
 
 
-	def handle_login(self):
+	def handle_login(self, username):
 		print("handle login")
 
 	def handle_logout(self):
@@ -56,7 +60,7 @@ class ClientHandler(socketserver.BaseRequestHandler):
 	def handle_help(self):
 		self.create_and_send_response("server", "info", self.help_text)
 
-	def handle_message(self):
+	def handle_message(self, message):
 		print("handle message")
 
 	def handle_names(self):
