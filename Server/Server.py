@@ -3,6 +3,7 @@ import socketserver
 import json
 import time
 import datetime
+import re
 
 help_text = "Available commands are: login <username>, logout, help, message <user>, names"
 clients = {}
@@ -55,8 +56,12 @@ class ClientHandler(socketserver.BaseRequestHandler):
 
 
 	def handle_login(self, username):
+		regex = "[a-zA-Z0-9]+"
+		match = re.search(regex, username)
 		if username in logged_in_usernames:
 			self.create_and_send_response("server", "error", "Username already taken.")
+		elif not(username == match.group(0)):
+			self.create_and_send_response("server", "error", "Illegal username.")
 		else:
 			self.username = username
 			logged_in_usernames.append(username)
@@ -74,7 +79,7 @@ class ClientHandler(socketserver.BaseRequestHandler):
 		self.send_response_all(response)
 
 	def handle_names(self):
-		print("handle names")
+		self.create_and_send_response("server", "info", logged_in_usernames)
 
 	def create_timestamp(self):
 		time_stamp = time.time()
